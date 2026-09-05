@@ -1,15 +1,19 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Workout Timer</title>
+<title>Warrick4Wellness Workout</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#111;color:white;font-family:Arial,sans-serif;text-align:center}
 .app{max-width:520px;margin:auto;padding:25px 18px}
 h1{font-size:28px;margin:5px}
 .sub{opacity:.65}
+.levels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:20px}
+.level{background:#333;color:white;padding:14px 8px;border:0;border-radius:12px;font-size:18px;font-weight:bold}
+.level.selected{background:white;color:#111}
 .status{margin-top:25px;font-weight:bold}
 .exercise{font-size:40px;font-weight:bold;margin:25px 0 10px;min-height:50px}
 .next{opacity:.65}
@@ -29,41 +33,47 @@ button{padding:18px;border:0;border-radius:15px;font-size:20px;font-weight:bold}
 </style>
 </head>
 
-<body>
+  <body>
 <div class="app">
 
-<h1>12-Exercise Workout</h1>
-<div class="sub">30 seconds work • 15 seconds rest • 2 rotations</div>
+ <h1>12-Exercise Workout</h1>
+<div class="sub">30 seconds work • 2 rotations</div>
+
+ <div class="levels">
+<button class="level" id="easy" onclick="setLevel('easy')">Easy<br><small>45s rest</small></button>
+<button class="level selected" id="medium" onclick="setLevel('medium')">Medium<br><small>30s rest</small></button>
+<button class="level" id="hard" onclick="setLevel('hard')">Hard<br><small>15s rest</small></button>
+</div>
 
 <div class="status" id="status">Ready</div>
 <div class="exercise" id="exercise">Press Start</div>
 <div class="next" id="next">Next exercise will be announced</div>
 
-<div class="timer" id="timer">30</div>
+  <div class="timer" id="timer">30</div>
 
-<div class="progress">
+ <div class="progress">
 <div class="bar" id="bar"></div>
 </div>
 
-<div class="buttons">
+  <div class="buttons">
 <button class="start" onclick="start()">▶ Start</button>
 <button class="dark" onclick="pause()">⏸ Pause</button>
 <button class="dark" onclick="reset()">↻ Reset</button>
 </div>
 
-<div class="round">
+  <div class="round">
 <span class="dot on" id="r1"></span>
 <span class="dot" id="r2"></span>
 </div>
 
-<div class="list">
+  <div class="list">
 <strong>Workout Order</strong>
 <div id="list"></div>
 </div>
 
-</div>
+  </div>
 
-<script>
+ <script>
 
 const exercises=[
 "Jumping Jacks",
@@ -80,6 +90,13 @@ const exercises=[
 "Plank"
 ];
 
+const restTimes={
+easy:45,
+medium:30,
+hard:15
+};
+
+let level="medium";
 let rotation=1;
 let index=0;
 let phase="work";
@@ -95,6 +112,21 @@ let voice=new SpeechSynthesisUtterance(text);
 voice.rate=1.05;
 speechSynthesis.speak(voice);
 }
+}
+
+function setLevel(newLevel){
+
+if(running)return;
+
+level=newLevel;
+
+document.querySelectorAll(".level").forEach(button=>{
+button.classList.remove("selected");
+});
+
+document.getElementById(newLevel).classList.add("selected");
+
+update();
 }
 
 function update(){
@@ -113,7 +145,7 @@ document.getElementById("next").textContent=
 document.getElementById("timer").textContent=
 Math.max(0,Math.ceil(remaining));
 
-let total=phase==="work"?30:15;
+let total=phase==="work"?30:restTimes[level];
 
 document.getElementById("bar").style.width=
 ((total-remaining)/total*100)+"%";
@@ -134,8 +166,9 @@ function nextPhase(){
 if(phase==="work"){
 
 phase="rest";
-remaining=15;
-speak("Rest");
+remaining=restTimes[level];
+
+speak("Rest. Next exercise: "+exercises[(index+1)%12]);
 
 }else{
 
@@ -178,7 +211,7 @@ lastTime=time;
 
 let count=Math.ceil(remaining);
 
-if(remaining > 5) window.lastCountdown = 0;
+if(remaining > 5) window.lastCountdown=0;
 
 if(count<=5 &&
 count>=1 &&
@@ -190,11 +223,7 @@ speak(String(count));
 
 if(remaining<=0){
 
-window.said1=false;
-window.said2=false;
-window.said3=false;
-window.said4=false;
-window.said5=false;
+window.lastCountdown=0;
 
 nextPhase();
 
@@ -249,11 +278,7 @@ phase="work";
 remaining=30;
 lastTime=0;
 
-window.said1=false;
-window.said2=false;
-window.said3=false;
-window.said4=false;
-window.said5=false;
+window.lastCountdown=0;
 
 update();
 }
@@ -272,3 +297,5 @@ update();
 
 </body>
 </html>
+    
+  
